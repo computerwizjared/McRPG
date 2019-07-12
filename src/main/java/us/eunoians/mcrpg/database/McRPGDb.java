@@ -25,15 +25,20 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 
 public class McRPGDb {
 
   private McRPG instance;
+
   @Getter private Database database;
+  @Getter private ScheduledExecutorService backupThread;
 
   public McRPGDb(McRPG plugin) {
     this.instance = plugin;
+
+
 
     Class generated = new LoadoutInstrumentation(instance,
             plugin.getFileManager().getFile(FileManager.Files.CONFIG).getInt("PlayerConfiguration.AmountOfTotalAbilities")).instrument();
