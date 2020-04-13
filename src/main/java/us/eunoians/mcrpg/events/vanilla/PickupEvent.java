@@ -12,7 +12,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import us.eunoians.mcrpg.McRPG;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.players.McRPGPlayer;
 import us.eunoians.mcrpg.players.PlayerManager;
@@ -29,13 +28,7 @@ public class PickupEvent implements Listener {
     if(PlayerManager.isPlayerFrozen(e.getPlayer().getUniqueId()) || e.getItem().getItemStack().getAmount() < 1 || e.isCancelled()){
       return;
     }
-    McRPGPlayer mp;
-    try{
-      mp = PlayerManager.getPlayer(e.getPlayer().getUniqueId());
-    }
-    catch(McRPGPlayerNotFoundException exception){
-      return;
-    }
+    McRPGPlayer mp = PlayerManager.getPlayer(e.getPlayer().getUniqueId());
     if(e.getPlayer().getInventory().getItemInMainHand() == null || e.getPlayer().getInventory().getItemInMainHand().getType() == Material.AIR || mp.getUnarmedIgnoreSlot() != -1) {
       Set<Integer> ignored = new HashSet<>();
       if(mp.isKeepHandEmpty()){

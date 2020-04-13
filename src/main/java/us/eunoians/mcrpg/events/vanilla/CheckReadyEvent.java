@@ -22,7 +22,6 @@ import us.eunoians.mcrpg.McRPG;
 import us.eunoians.mcrpg.abilities.BaseAbility;
 import us.eunoians.mcrpg.abilities.herbalism.NaturesWrath;
 import us.eunoians.mcrpg.api.events.mcrpg.herbalism.NaturesWrathEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.api.util.books.SkillBookFactory;
@@ -48,12 +47,7 @@ public class CheckReadyEvent implements Listener{
       return;
     }
     Player p = e.getPlayer();
-    McRPGPlayer mp;
-    try{
-      mp = PlayerManager.getPlayer(p.getUniqueId());
-    }catch(McRPGPlayerNotFoundException exception){
-      return;
-    }
+    McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
     ItemStack heldItem = e.getItem();
     Calendar cal = Calendar.getInstance();
     //skill book checks

@@ -6,7 +6,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import us.eunoians.mcrpg.McRPG;
 import us.eunoians.mcrpg.abilities.BaseAbility;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.BuriedTreasureData;
 import us.eunoians.mcrpg.api.util.DiamondFlowersData;
 import us.eunoians.mcrpg.api.util.Methods;
@@ -35,13 +34,7 @@ public class McRPGStub implements CommandExecutor {
         return true;
       }
       if(args.length == 0) {
-        McRPGPlayer mp;
-        try{
-          mp = PlayerManager.getPlayer(p.getUniqueId());
-        }
-        catch(McRPGPlayerNotFoundException exception){
-          return true;
-        }
+        McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
         if(mp.hasPendingAbility()) {
           UnlockedAbilities ability = mp.getPendingUnlockAbilities().get(0);
           if(ability.getAbilityType() == AbilityType.ACTIVE) {

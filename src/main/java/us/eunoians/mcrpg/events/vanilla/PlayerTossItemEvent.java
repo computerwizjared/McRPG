@@ -16,7 +16,6 @@ import us.eunoians.mcrpg.abilities.woodcutting.DemetersShrine;
 import us.eunoians.mcrpg.api.events.mcrpg.PansShrineTestEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.excavation.PansShrineEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.sorcery.CircesShrineEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.events.mcrpg.McRPGExpGain;
@@ -35,13 +34,7 @@ public class PlayerTossItemEvent implements Listener {
       return;
     }
     Player p = e.getPlayer();
-    McRPGPlayer mp;
-    try{
-      mp = PlayerManager.getPlayer(p.getUniqueId());
-    }
-    catch(McRPGPlayerNotFoundException exception){
-      return;
-    }
+    McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
     FileConfiguration woodcuttingConfig = McRPG.getInstance().getFileManager().getFile(FileManager.Files.WOODCUTTING_CONFIG);
     FileConfiguration excavationConfig = McRPG.getInstance().getFileManager().getFile(FileManager.Files.EXCAVATION_CONFIG);
     FileConfiguration sorceryConfig = McRPG.getInstance().getFileManager().getFile(FileManager.Files.SORCERY_CONFIG);

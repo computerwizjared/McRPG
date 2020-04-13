@@ -12,7 +12,6 @@ import us.eunoians.mcrpg.abilities.fishing.PoseidonsFavor;
 import us.eunoians.mcrpg.abilities.sorcery.HadesDomain;
 import us.eunoians.mcrpg.api.events.mcrpg.fishing.PoseidonsFavorEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.sorcery.HadesDomainEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.players.McRPGPlayer;
@@ -27,12 +26,7 @@ public class EntityDeathEvent implements Listener{
     if(entity.getKiller() != null && entity.hasMetadata("GuardianExp")){
       int exp = entity.getMetadata("GuardianExp").get(0).asInt();
       Player p = entity.getKiller();
-      McRPGPlayer mp;
-      try{
-        mp = PlayerManager.getPlayer(p.getUniqueId());
-      }catch(McRPGPlayerNotFoundException exception){
-        return;
-      }
+      McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
       if(UnlockedAbilities.POSEIDONS_FAVOR.isEnabled() && mp.doesPlayerHaveAbilityInLoadout(UnlockedAbilities.POSEIDONS_FAVOR) && mp.getBaseAbility(UnlockedAbilities.POSEIDONS_FAVOR).isToggled()){
         PoseidonsFavor poseidonsFavor = (PoseidonsFavor) mp.getBaseAbility(UnlockedAbilities.POSEIDONS_FAVOR);
         int extraExp = McRPG.getInstance().getFileManager().getFile(FileManager.Files.FISHING_CONFIG).getInt("PoseidonsFavorConfig.Tier" + Methods.convertToNumeral(poseidonsFavor.getCurrentTier()) + ".ExpIncrease");
@@ -48,25 +42,20 @@ public class EntityDeathEvent implements Listener{
     }
     if(entity.getKiller() != null && entity.getLocation().getBlock().getBiome() == Biome.NETHER){
       Player killer = entity.getKiller();
-      try{
-        McRPGPlayer mp = PlayerManager.getPlayer(killer.getUniqueId());
-        FileConfiguration sorceryFile = McRPG.getInstance().getFileManager().getFile(FileManager.Files.SORCERY_CONFIG);
-        if(sorceryFile.getBoolean("SorceryEnabled") && UnlockedAbilities.HADES_DOMAIN.isEnabled() && mp.doesPlayerHaveAbilityInLoadout(UnlockedAbilities.HADES_DOMAIN)
-        && mp.getBaseAbility(UnlockedAbilities.HADES_DOMAIN).isToggled()){
-          HadesDomain hadesDomain = (HadesDomain) mp.getBaseAbility(UnlockedAbilities.HADES_DOMAIN);
-          double multiplier = sorceryFile.getDouble("HadesDomainConfiguration.Tier" + Methods.convertToNumeral(hadesDomain.getCurrentTier()) + ".VanillaExpBoost");
-          HadesDomainEvent hadesDomainEvent = new HadesDomainEvent(mp, hadesDomain, multiplier, false);
-          Bukkit.getPluginManager().callEvent(hadesDomainEvent);
-          if(!hadesDomainEvent.isCancelled()){
-            multiplier = hadesDomainEvent.getPercentBonusVanillaExp();
-            multiplier /= 100;
-            multiplier += 1;
-            e.setDroppedExp((int) (e.getDroppedExp() * multiplier));
-          }
+      McRPGPlayer mp = PlayerManager.getPlayer(killer.getUniqueId());
+      FileConfiguration sorceryFile = McRPG.getInstance().getFileManager().getFile(FileManager.Files.SORCERY_CONFIG);
+      if(sorceryFile.getBoolean("SorceryEnabled") && UnlockedAbilities.HADES_DOMAIN.isEnabled() && mp.doesPlayerHaveAbilityInLoadout(UnlockedAbilities.HADES_DOMAIN)
+          && mp.getBaseAbility(UnlockedAbilities.HADES_DOMAIN).isToggled()){
+        HadesDomain hadesDomain = (HadesDomain) mp.getBaseAbility(UnlockedAbilities.HADES_DOMAIN);
+        double multiplier = sorceryFile.getDouble("HadesDomainConfiguration.Tier" + Methods.convertToNumeral(hadesDomain.getCurrentTier()) + ".VanillaExpBoost");
+        HadesDomainEvent hadesDomainEvent = new HadesDomainEvent(mp, hadesDomain, multiplier, false);
+        Bukkit.getPluginManager().callEvent(hadesDomainEvent);
+        if(!hadesDomainEvent.isCancelled()){
+          multiplier = hadesDomainEvent.getPercentBonusVanillaExp();
+          multiplier /= 100;
+          multiplier += 1;
+          e.setDroppedExp((int) (e.getDroppedExp() * multiplier));
         }
-      }
-      catch(McRPGPlayerNotFoundException ex){
-        ex.printStackTrace();
       }
     }
   }

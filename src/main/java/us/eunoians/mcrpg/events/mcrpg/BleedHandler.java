@@ -13,7 +13,6 @@ import org.bukkit.scheduler.BukkitTask;
 import us.eunoians.mcrpg.McRPG;
 import us.eunoians.mcrpg.abilities.swords.Bleed;
 import us.eunoians.mcrpg.api.events.mcrpg.swords.BleedEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.players.McRPGPlayer;
 import us.eunoians.mcrpg.players.PlayerManager;
@@ -122,14 +121,7 @@ public class BleedHandler implements Listener{
       return;
     }
     if(target instanceof Player){
-      McRPGPlayer targ;
-      try{
-        targ = PlayerManager.getPlayer(e.getTarget().getUniqueId());
-      }
-      catch(McRPGPlayerNotFoundException exception){
-        e.setCancelled(true);
-        return;
-      }
+      McRPGPlayer targ = PlayerManager.getPlayer(e.getTarget().getUniqueId());
       //If bleed is unable to target cancel
       if(!bleed.canTarget()){
         e.setCancelled(true);
@@ -162,14 +154,7 @@ public class BleedHandler implements Listener{
           if(en instanceof Player && ((Player) en).isOnline()){
             en.sendMessage(Methods.color(((Player) en), McRPG.getInstance().getPluginPrefix()
                     + McRPG.getInstance().getLangFile().getString("Messages.Abilities.Bleed.BleedingStopped")));
-            McRPGPlayer targ;
-            try{
-              targ = PlayerManager.getPlayer(e.getTarget().getUniqueId());
-            }
-            catch(McRPGPlayerNotFoundException exception){
-              e.setCancelled(true);
-              return;
-            }
+            McRPGPlayer targ = PlayerManager.getPlayer(e.getTarget().getUniqueId());
             if(e.isBleedImmunityEnabled()){
               startBleedImmunityTimer(targ, e.getBleedImmunityDuration());
             }

@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import us.eunoians.mcrpg.McRPG;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.players.McRPGPlayer;
+import us.eunoians.mcrpg.players.PlayerManager;
 import us.eunoians.mcrpg.util.Parser;
 
 import java.util.logging.Level;
@@ -32,7 +33,7 @@ public class McConvert implements CommandExecutor {
           if(playersConverted != 0 && playersConverted % 5 == 0){
             Bukkit.getLogger().log(Level.INFO, Methods.color(McRPG.getInstance().getPluginPrefix() + "&eConverted " + playersConverted + " players so far..."));
           }
-          McRPGPlayer mp = new McRPGPlayer(offlinePlayer.getUniqueId());
+          McRPGPlayer mp = PlayerManager.getPlayer(offlinePlayer.getUniqueId());
           int expToConvert = 0;
           for(PrimarySkillType skillType : PrimarySkillType.NON_CHILD_SKILLS){
             try{

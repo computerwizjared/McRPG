@@ -6,7 +6,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import us.eunoians.mcrpg.McRPG;
 import us.eunoians.mcrpg.abilities.mining.RemoteTransfer;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.api.util.RemoteTransferTracker;
 import us.eunoians.mcrpg.players.McRPGPlayer;
@@ -27,13 +26,7 @@ public class McUnlink implements CommandExecutor {
         return true;
       }
 
-      McRPGPlayer mp;
-      try{
-        mp = PlayerManager.getPlayer(((Player) sender).getUniqueId());
-      }
-      catch(McRPGPlayerNotFoundException exception){
-        return true;
-      }
+      McRPGPlayer mp = PlayerManager.getPlayer(((Player) sender).getUniqueId());
       if(!mp.isLinkedToRemoteTransfer()) {
         mp.getPlayer().sendMessage(Methods.color(McRPG.getInstance().getPluginPrefix() + McRPG.getInstance().getLangFile().getString("Messages.Abilities.RemoteTransfer.IsNotLinked")));
         return true;

@@ -6,7 +6,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.players.McRPGPlayer;
 import us.eunoians.mcrpg.players.PlayerManager;
 import us.eunoians.mcrpg.types.AbilityType;
@@ -20,9 +19,7 @@ public class McAdminPrompt implements TabCompleter {
 
   @Override
   public List<String> onTabComplete(CommandSender sender, Command command, String commandLable, String[] args){
-
     List<String> completions = new ArrayList<>();
-    Player p = (Player) sender;
     if(args.length == 1){
       completions.add("give");
       completions.add("replace");
@@ -92,23 +89,17 @@ public class McAdminPrompt implements TabCompleter {
         case "replace":
           if(Bukkit.getOfflinePlayer(args[1]).isOnline()){
             Player player = (Player) Bukkit.getOfflinePlayer(args[1]);
-            try{
-              McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
-              for(UnlockedAbilities ab : mp.getAbilityLoadout()){
-                completions.add(ab.getName());
-              }
-            } catch(McRPGPlayerNotFoundException e){
+            McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
+            for(UnlockedAbilities ab : mp.getAbilityLoadout()){
+              completions.add(ab.getName());
             }
           }
         case "remove":
           if(Bukkit.getOfflinePlayer(args[1]).isOnline()){
             Player player = (Player) Bukkit.getOfflinePlayer(args[1]);
-            try{
-              McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
-              for(UnlockedAbilities ab : mp.getAbilityLoadout()){
-                completions.add(ab.getName());
-              }
-            } catch(McRPGPlayerNotFoundException e){
+            McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
+            for(UnlockedAbilities ab : mp.getAbilityLoadout()){
+              completions.add(ab.getName());
             }
           }
         case "view":
@@ -169,14 +160,11 @@ public class McAdminPrompt implements TabCompleter {
         case "replace":
           if(Bukkit.getOfflinePlayer(args[1]).isOnline()){
             Player player = (Player) Bukkit.getOfflinePlayer(args[1]);
-            try{
-              McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
-              for(UnlockedAbilities ab : UnlockedAbilities.values()){
-                if(!mp.getAbilityLoadout().contains(ab)){
-                  completions.add(ab.getName());
-                }
+            McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
+            for(UnlockedAbilities ab : UnlockedAbilities.values()){
+              if(!mp.getAbilityLoadout().contains(ab)){
+                completions.add(ab.getName());
               }
-            } catch(McRPGPlayerNotFoundException e){
             }
           }
         case "cooldown":
@@ -186,17 +174,13 @@ public class McAdminPrompt implements TabCompleter {
             case "remove":
               if(Bukkit.getOfflinePlayer(args[2]).isOnline()){
                 Player player = (Player) Bukkit.getOfflinePlayer(args[2]);
-                try{
-                  McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
-                  for(UnlockedAbilities ab : mp.getAbilityLoadout()){
-                    if(ab.getAbilityType() == AbilityType.ACTIVE){
-                      completions.add(ab.getName());
-                    }
+                McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
+                for(UnlockedAbilities ab : mp.getAbilityLoadout()){
+                  if(ab.getAbilityType() == AbilityType.ACTIVE){
+                    completions.add(ab.getName());
                   }
-                } catch(McRPGPlayerNotFoundException e){
                 }
               }
-
           }
         case "reset":
           switch(args[1].toLowerCase()){

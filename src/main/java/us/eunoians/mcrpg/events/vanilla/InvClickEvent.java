@@ -24,7 +24,6 @@ import us.eunoians.mcrpg.abilities.mining.RemoteTransfer;
 import us.eunoians.mcrpg.api.events.mcrpg.AbilityAddToLoadoutEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.AbilityRemovedFromLoadoutEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.AbilityUpgradeEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.api.util.RedeemBit;
@@ -61,12 +60,7 @@ public class InvClickEvent implements Listener{
     if(GUITracker.isPlayerTracked(p)){
       //Cancel event
       e.setCancelled(true);
-      McRPGPlayer mp;
-      try{
-        mp = PlayerManager.getPlayer(p.getUniqueId());
-      }catch(McRPGPlayerNotFoundException exception){
-        return;
-      }
+      McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
       
       GUI currentGUI = GUITracker.getPlayersGUI(p);
       

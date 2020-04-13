@@ -14,7 +14,6 @@ import us.eunoians.mcrpg.McRPG;
 import us.eunoians.mcrpg.abilities.swords.RageSpike;
 import us.eunoians.mcrpg.api.events.mcrpg.swords.PreRageSpikeEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.swords.RageSpikeDamageEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.players.McRPGPlayer;
@@ -44,13 +43,7 @@ public class ShiftToggle implements Listener {
     }
     //Get the player and the McRPGPlayer
     Player player = e.getPlayer();
-    McRPGPlayer mp;
-    try{
-      mp = PlayerManager.getPlayer(player.getUniqueId());
-    }
-    catch(McRPGPlayerNotFoundException exception){
-      return;
-    }
+    McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
     //if the player is readying. They cant be charging in this state due to the nature of the below code
     if(mp.isReadying() && e.isSneaking() && mp.getReadyingAbilityBit() != null && mp.getReadyingAbilityBit().getAbilityReady() == UnlockedAbilities.RAGE_SPIKE){
       //Fire the pre rage spike event to get and store some values

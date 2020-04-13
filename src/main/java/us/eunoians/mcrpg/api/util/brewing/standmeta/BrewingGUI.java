@@ -22,7 +22,6 @@ import us.eunoians.mcrpg.abilities.sorcery.HastyBrew;
 import us.eunoians.mcrpg.abilities.sorcery.ManaAffinity;
 import us.eunoians.mcrpg.api.events.mcrpg.sorcery.HastyBrewEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.sorcery.ManaAffinityEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.api.util.artifacts.ArtifactFactory;
@@ -646,12 +645,8 @@ public class BrewingGUI extends GUI{
         }
       }
       if(lastInteractedPlayer != null && lastInteractedPlayer.isOnline()){
-        try{
-          McRPGPlayer mp = PlayerManager.getPlayer(lastInteractedPlayer.getUniqueId());
-          mp.giveExp(Skills.SORCERY, expToAward, GainReason.BREW);
-        }catch(McRPGPlayerNotFoundException e){
-          e.printStackTrace();
-        }
+        McRPGPlayer mp = PlayerManager.getPlayer(lastInteractedPlayer.getUniqueId());
+        mp.giveExp(Skills.SORCERY, expToAward, GainReason.BREW);
       }
       if(potionItems[0] != null){
         snapshotInventory.setItem(VANILLA_POTION_SLOT_1, potionItems[0].getAsItem());
@@ -670,11 +665,7 @@ public class BrewingGUI extends GUI{
       }
       currentFuelLevel--;
       if(lastInteractedPlayer != null && lastInteractedPlayer.isOnline()){
-        McRPGPlayer mp = null;
-        try{
-          mp = PlayerManager.getPlayer(lastInteractedPlayer.getUniqueId());
-        }catch(McRPGPlayerNotFoundException e){
-        }
+        McRPGPlayer mp = PlayerManager.getPlayer(lastInteractedPlayer.getUniqueId());
         if(mp != null){
           BookManager bookManager = McRPG.getInstance().getBookManager();
           ArtifactManager artifactManager = McRPG.getInstance().getArtifactManager();
@@ -825,22 +816,15 @@ public class BrewingGUI extends GUI{
           BasePotionType basePotionType = potionRecipeManager.getChildPotionType(ingredientType, basePotion);
           if(potionRecipeManager.isLockedRecipe(basePotionType)){
             if(lastInteractedPlayer != null && lastInteractedPlayer.isOnline()){
-              try{
-                FileConfiguration sorceryConfig = McRPG.getInstance().getFileManager().getFile(FileManager.Files.SORCERY_CONFIG);
-                McRPGPlayer mp = PlayerManager.getPlayer(lastInteractedPlayer.getUniqueId());
-                if(sorceryConfig.getBoolean("SorceryEnabled") && UnlockedAbilities.CIRCES_RECIPES.isEnabled() && mp.doesPlayerHaveAbilityInLoadout(UnlockedAbilities.CIRCES_RECIPES)
-                     && mp.getBaseAbility(UnlockedAbilities.CIRCES_RECIPES).isToggled()){
-                  CircesRecipes circesRecipes = (CircesRecipes) mp.getBaseAbility(UnlockedAbilities.CIRCES_RECIPES);
-                  return potionRecipeManager.getTypesForTier(circesRecipes.getCurrentTier()).contains(basePotionType);
-                }
-              }catch(McRPGPlayerNotFoundException e){
-                continue;
+              FileConfiguration sorceryConfig = McRPG.getInstance().getFileManager().getFile(FileManager.Files.SORCERY_CONFIG);
+              McRPGPlayer mp = PlayerManager.getPlayer(lastInteractedPlayer.getUniqueId());
+              if(sorceryConfig.getBoolean("SorceryEnabled") && UnlockedAbilities.CIRCES_RECIPES.isEnabled() && mp.doesPlayerHaveAbilityInLoadout(UnlockedAbilities.CIRCES_RECIPES)
+                  && mp.getBaseAbility(UnlockedAbilities.CIRCES_RECIPES).isToggled()){
+                CircesRecipes circesRecipes = (CircesRecipes) mp.getBaseAbility(UnlockedAbilities.CIRCES_RECIPES);
+                return potionRecipeManager.getTypesForTier(circesRecipes.getCurrentTier()).contains(basePotionType);
               }
-              continue;
             }
-            else{
-              continue;
-            }
+            continue;
           }
           return true;
         }
@@ -908,27 +892,23 @@ public class BrewingGUI extends GUI{
   
   private double getBrewDuration(){
     if(lastInteractedPlayer != null && lastInteractedPlayer.isOnline()){
-      try{
-        McRPGPlayer mp = PlayerManager.getPlayer(lastInteractedPlayer.getUniqueId());
-        FileConfiguration sorceryFile = McRPG.getInstance().getFileManager().getFile(FileManager.Files.SORCERY_CONFIG);
-        if(sorceryFile.getBoolean("SorceryEnabled") && DefaultAbilities.HASTY_BREW.isEnabled() && mp.getBaseAbility(DefaultAbilities.HASTY_BREW).isToggled()){
-          HastyBrew hastyBrew = (HastyBrew) mp.getBaseAbility(DefaultAbilities.HASTY_BREW);
-          Parser parser = DefaultAbilities.HASTY_BREW.getActivationEquation();
-          parser.setVariable("sorcery_level", mp.getSkill(Skills.SORCERY).getCurrentLevel());
-          parser.setVariable("power_level", mp.getPowerLevel());
-          double multiplier = parser.getValue();
-          HastyBrewEvent hastyBrewEvent = new HastyBrewEvent(mp, hastyBrew, multiplier);
-          Bukkit.getPluginManager().callEvent(hastyBrewEvent);
-          if(hastyBrewEvent.isCancelled()){
-            return potionBrewDuration;
-          }
-          multiplier = hastyBrewEvent.getBrewDurationBoost();
-          multiplier /= 100;
-          multiplier = 1 - multiplier;
-          return potionBrewDuration * (multiplier > 0 ? multiplier : 0.2);
+      McRPGPlayer mp = PlayerManager.getPlayer(lastInteractedPlayer.getUniqueId());
+      FileConfiguration sorceryFile = McRPG.getInstance().getFileManager().getFile(FileManager.Files.SORCERY_CONFIG);
+      if(sorceryFile.getBoolean("SorceryEnabled") && DefaultAbilities.HASTY_BREW.isEnabled() && mp.getBaseAbility(DefaultAbilities.HASTY_BREW).isToggled()){
+        HastyBrew hastyBrew = (HastyBrew) mp.getBaseAbility(DefaultAbilities.HASTY_BREW);
+        Parser parser = DefaultAbilities.HASTY_BREW.getActivationEquation();
+        parser.setVariable("sorcery_level", mp.getSkill(Skills.SORCERY).getCurrentLevel());
+        parser.setVariable("power_level", mp.getPowerLevel());
+        double multiplier = parser.getValue();
+        HastyBrewEvent hastyBrewEvent = new HastyBrewEvent(mp, hastyBrew, multiplier);
+        Bukkit.getPluginManager().callEvent(hastyBrewEvent);
+        if(hastyBrewEvent.isCancelled()){
+          return potionBrewDuration;
         }
-      }catch(McRPGPlayerNotFoundException e){
-        return potionBrewDuration;
+        multiplier = hastyBrewEvent.getBrewDurationBoost();
+        multiplier /= 100;
+        multiplier = 1 - multiplier;
+        return potionBrewDuration * (multiplier > 0 ? multiplier : 0.2);
       }
     }
     return potionBrewDuration;

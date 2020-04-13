@@ -9,7 +9,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import us.eunoians.mcrpg.McRPG;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.players.McRPGPlayer;
 import us.eunoians.mcrpg.players.PlayerManager;
 
@@ -56,12 +55,7 @@ public final class MobHealthbarUtils {
     if(!p.isOnline() || !PlayerManager.isPlayerStored(p.getUniqueId())){
       return;
     }
-    McRPGPlayer mp;
-    try{
-      mp = PlayerManager.getPlayer(p.getUniqueId());
-    } catch(McRPGPlayerNotFoundException exception){
-      return;
-    }
+    McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
     //TODO Player settings
 	/*PlayerProfile profile = UserManager.getPlayer(player).getProfile();
 

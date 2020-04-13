@@ -20,7 +20,6 @@ import us.eunoians.mcrpg.McRPG;
 import us.eunoians.mcrpg.abilities.sorcery.HadesDomain;
 import us.eunoians.mcrpg.api.events.mcrpg.McRPGPlayerExpGainEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.sorcery.HadesDomainEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.api.util.WorldModifierManager;
@@ -202,12 +201,7 @@ public class McRPGExpGain implements Listener {
         demetersShrineMultipliers.remove(uuid);
         if(Bukkit.getOfflinePlayer(uuid).isOnline()){
           if(PlayerManager.isPlayerStored(uuid)){
-            try{
-              PlayerManager.getPlayer(uuid).getActiveAbilities().remove(UnlockedAbilities.DEMETERS_SHRINE);
-            }
-            catch(McRPGPlayerNotFoundException exception){
-              return;
-            }
+            PlayerManager.getPlayer(uuid).getActiveAbilities().remove(UnlockedAbilities.DEMETERS_SHRINE);
           }
         }
       }

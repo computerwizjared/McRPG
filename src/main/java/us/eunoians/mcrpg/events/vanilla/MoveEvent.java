@@ -20,7 +20,6 @@ import us.eunoians.mcrpg.abilities.fitness.RunnersDiet;
 import us.eunoians.mcrpg.abilities.woodcutting.NymphsVitality;
 import us.eunoians.mcrpg.api.events.mcrpg.fitness.RunnersDietEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.woodcutting.NymphsVitalityEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.players.McRPGPlayer;
@@ -41,13 +40,7 @@ public class MoveEvent implements Listener{
       e.setCancelled(true);
       return;
     }
-    McRPGPlayer player;
-    try{
-      player = PlayerManager.getPlayer(e.getPlayer().getUniqueId());
-    }
-    catch(McRPGPlayerNotFoundException exception){
-      return;
-    }
+    McRPGPlayer player = PlayerManager.getPlayer(e.getPlayer().getUniqueId());
     if(player == null || player.getAbilityLoadout() == null){
       return;
     }

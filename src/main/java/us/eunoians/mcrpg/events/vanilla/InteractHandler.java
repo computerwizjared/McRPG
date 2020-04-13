@@ -38,7 +38,6 @@ import us.eunoians.mcrpg.api.events.mcrpg.mining.BlastMiningEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.mining.BlastTestEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.mining.OreScannerEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.mining.SuperBreakerEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.api.util.brewing.BrewingStandManager;
@@ -73,13 +72,7 @@ public class InteractHandler implements Listener {
       shovel.setItemMeta(meta);
     }
     Player p = e.getPlayer();
-    McRPGPlayer mp;
-    try{
-      mp = PlayerManager.getPlayer(p.getUniqueId());
-    }
-    catch(McRPGPlayerNotFoundException exception){
-      return;
-    }
+    McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
     if(!e.isCancelled() && e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getType() == Material.BREWING_STAND){
       if(p.isSneaking() && !(p.getInventory().getItemInMainHand() == null || p.getInventory().getItemInMainHand().getType() == Material.AIR)){
         return;

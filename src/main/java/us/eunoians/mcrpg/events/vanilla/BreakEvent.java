@@ -55,7 +55,6 @@ import us.eunoians.mcrpg.api.events.mcrpg.woodcutting.DryadsGiftEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.woodcutting.ExtraLumberEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.woodcutting.HeavySwingEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.woodcutting.TemporalHarvestEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.*;
 import us.eunoians.mcrpg.api.util.books.BookManager;
 import us.eunoians.mcrpg.api.util.books.SkillBookFactory;
@@ -149,13 +148,7 @@ public class BreakEvent implements Listener{
           }
         }
       }
-      McRPGPlayer mp;
-      try{
-        mp = PlayerManager.getPlayer(p.getUniqueId());
-      }
-      catch(McRPGPlayerNotFoundException exception){
-        return;
-      }
+      McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
       if(McRPG.getInstance().isWorldGuardEnabled()){
         WGSupportManager wgSupportManager = McRPG.getInstance().getWgSupportManager();
         if(wgSupportManager.isWorldTracker(event.getBlock().getWorld())){
@@ -699,12 +692,9 @@ public class BreakEvent implements Listener{
             if(p.hasPermission("mcadmin.*") || p.hasPermission("mcadmin.unlink")){
               McRPGPlayer target;
               OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
-              try{
-                target = PlayerManager.getPlayer(offlinePlayer.getUniqueId());
+              target = PlayerManager.getPlayer(offlinePlayer.getUniqueId());
+              if (target.isOnline()) {
                 target.getPlayer().sendMessage(Methods.color(McRPG.getInstance().getPluginPrefix() + McRPG.getInstance().getLangFile().getString("Messages.Abilities.RemoteTransfer.AdminUnlinked")));
-              }
-              catch(McRPGPlayerNotFoundException exception){
-                target = new McRPGPlayer(uuid);
               }
               target.setLinkedToRemoteTransfer(false);
               ((RemoteTransfer) target.getBaseAbility(UnlockedAbilities.REMOTE_TRANSFER)).setLinkedChestLocation(null);

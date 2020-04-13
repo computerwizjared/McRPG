@@ -5,7 +5,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import us.eunoians.mcrpg.McRPG;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.api.util.RedeemBit;
 import us.eunoians.mcrpg.players.McRPGPlayer;
@@ -20,13 +19,7 @@ public class ChatEvent implements Listener {
     if(PlayerManager.isPlayerFrozen(e.getPlayer().getUniqueId()) && !PlayerManager.isPlayerStored(e.getPlayer().getUniqueId())){
       return;
     }
-    McRPGPlayer mp;
-    try{
-      mp = PlayerManager.getPlayer(e.getPlayer().getUniqueId());
-    }
-    catch(McRPGPlayerNotFoundException exception){
-      return;
-    }
+    McRPGPlayer mp = PlayerManager.getPlayer(e.getPlayer().getUniqueId());
     if(mp.isListenForCustomExpInput()){
       e.setCancelled(true);
       mp.setListenForCustomExpInput(false);

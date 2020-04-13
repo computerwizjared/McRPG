@@ -4,7 +4,6 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import us.eunoians.mcrpg.McRPG;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.leaderboards.LeaderboardManager;
 import us.eunoians.mcrpg.api.leaderboards.PlayerLeaderboardData;
 import us.eunoians.mcrpg.players.McRPGPlayer;
@@ -38,13 +37,7 @@ public class McRPGPlaceHolders extends PlaceholderExpansion {
     if(player == null) {
       return null;
     }
-    McRPGPlayer mp;
-    try{
-      mp = PlayerManager.getPlayer(player.getUniqueId());
-    }
-    catch(McRPGPlayerNotFoundException exception){
-      mp = new McRPGPlayer(player.getUniqueId());
-    }
+    McRPGPlayer mp = PlayerManager.getPlayer(player.getUniqueId());
     String [] args = identifier.split("_");
     if(identifier.equalsIgnoreCase("power_level")){
       return Integer.toString(mp.getPowerLevel());

@@ -14,7 +14,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import us.eunoians.mcrpg.McRPG;
 import us.eunoians.mcrpg.abilities.mining.RemoteTransfer;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.players.McRPGPlayer;
 import us.eunoians.mcrpg.players.PlayerManager;
@@ -53,12 +52,7 @@ public class DropItemEvent implements Listener{
       blockDropsToMultiplier.remove(loc);
     }
     if(blocksToRemoteTransfer.containsKey(loc)){
-      McRPGPlayer mp;
-      try{
-        mp = PlayerManager.getPlayer(e.getPlayer().getUniqueId());
-      }catch(McRPGPlayerNotFoundException exception){
-        return;
-      }
+      McRPGPlayer mp = PlayerManager.getPlayer(e.getPlayer().getUniqueId());
       RemoteTransfer transfer = (RemoteTransfer) mp.getBaseAbility(UnlockedAbilities.REMOTE_TRANSFER);
       if(!transfer.isAbilityLinked()){
         return;

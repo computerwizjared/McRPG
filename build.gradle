@@ -52,7 +52,13 @@ dependencies {
     compileOnly files('libs/SpartanAPI.jar')
     compileOnly files('libs/mcMMO.jar')
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
+    testCompile 'org.mockito:mockito-core:3.3.3'
+    testCompile 'org.mockito:mockito-junit-jupiter:3.3.3'
+    //don't want to use PowerMock unless necessary
+    //testCompile 'org.powermock:powermock-module-junit4:2.0.7'
+    //testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
 }
 
 processResources {
@@ -67,6 +73,10 @@ shadowJar {
     relocate 'de.tr7zw.changeme.nbtapi', 'us.eunoians.mcrpg.nbtapi'
     relocate 'org.slf4j', 'us.eunoians.mcrpg'
     relocate 'org.bstats', 'us.eunoians.mcrpg'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 artifacts {
