@@ -1,6 +1,8 @@
 package us.eunoians.mcrpg.players;
 
+import com.cyr1en.flatdb.Database;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -8,15 +10,21 @@ import org.bukkit.scheduler.BukkitTask;
 import us.eunoians.mcrpg.McRPG;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
+import us.eunoians.mcrpg.party.Party;
+import us.eunoians.mcrpg.types.DisplayType;
+import us.eunoians.mcrpg.types.Skills;
 import us.eunoians.mcrpg.types.TipType;
+import us.eunoians.mcrpg.util.mcmmo.MobHealthbarUtils;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 public class PlayerManager {
 
   //Players who are currently logged on
   private static HashMap<UUID, McRPGPlayer> players = new HashMap<>();
-  private static ArrayList<UUID> playersFrozen = new ArrayList<UUID>();
+  private static ArrayList<UUID> playersFrozen = new ArrayList<>();
   private static McRPG plugin;
   private static BukkitTask saveTask;
 
@@ -35,7 +43,7 @@ public class PlayerManager {
 
     BukkitTask task = new BukkitRunnable() {
       public void run() {
-        McRPGPlayer mp = new McRPGPlayer(uuid);
+        McRPGPlayer mp = getPlayer(uuid);
         mp.getUsedTips().add(TipType.LOGIN_TIP);
         if(mp.isOnline()) {
           if(!mp.isIgnoreTips()) {
@@ -58,6 +66,116 @@ public class PlayerManager {
     }.runTaskAsynchronously(plugin);
   }
 
+  private McRPGPlayer createMcRPGPlayer(UUID uuid) {
+    McRPGPlayer.McRPGPlayerBuilder builder = McRPGPlayer.builder()
+        .uuid(uuid)
+        .guardianSummonChance(plugin.getConfig().getDouble("PlayerConfiguration.PoseidonsGuardian.DefaultSummonChance"));
+
+    Database database = plugin.getMcRPGDb().getDatabase();
+    Optional<ResultSet> playerDataSet = database.executeQuery("SELECT * FROM mcrpg_player_data WHERE uuid = '" + uuid.toString() + "'");
+
+    boolean isNew = false;
+    try {
+      if(playerDataSet.isPresent()) {
+        isNew = !playerDataSet.get().next();
+      }
+      else {
+        isNew = true;
+      }
+    } catch(SQLException e) {
+      e.printStackTrace();
+    }
+
+    if (isNew) {
+      for (Skills type : Skills.values()) {
+        String query = "INSERT INTO mcrpg_" + type.getName() + "_data (uuid) VALUES ('" + uuid.toString() + "')";
+        database.executeUpdate(query);
+      }
+      String query = "INSERT INTO MCRPG_PLAYER_SETTINGS (UUID) VALUES ('" + uuid.toString() + "')";
+      database.executeUpdate(query);
+      query = "INSERT INTO MCRPG_PLAYER_DATA (UUID) VALUES ('" + uuid.toString() + "')";
+      database.executeUpdate(query);
+      query = "INSERT INTO MCRPG_LOADOUT (UUID) VALUES ('" + uuid.toString() + "')";
+      database.executeUpdate(query);
+      playerDataSet = database.executeQuery("SELECT * FROM mcrpg_player_data WHERE uuid = '" + uuid.toString() + "'");
+      try {
+        playerDataSet.get().next();
+      } catch(SQLException e) {
+        e.printStackTrace();
+      }
+    }
+
+    playerDataSet.ifPresent(resultSet -> {
+      try {
+        builder
+            .abilityPoints(resultSet.getInt("ability_points"))
+            .redeemableExp(resultSet.getInt("redeemable_exp"))
+            .redeemableLevels(resultSet.getInt("redeemable_levels"))
+            .boostedExp(resultSet.getInt("boosted_exp"))
+            .divineEscapeExpDebuff(resultSet.getDouble("divine_escape_exp_debuff"))
+            .divineEscapeExpEnd(resultSet.getInt("divine_escape_exp_end_time"))
+            .divineEscapeDamageEnd(resultSet.getInt("divine_escape_damage_end_time"));
+        String partyIDString = resultSet.getString("party_uuid");
+        UUID partyID;
+        if(partyIDString.equalsIgnoreCase("nu")) {
+          partyID = null;
+        }
+        else {
+          partyID = UUID.fromString(partyIDString);
+          Party party = plugin.getPartyManager().getParty(partyID);
+          StringBuilder nullPartyMessage = new StringBuilder();
+          if(party == null) {
+            partyID = null;
+            nullPartyMessage.append("&cYour party no longer exists.");
+          }
+          else {
+            if(!party.isPlayerInParty(uuid)) {
+              partyID = null;
+              nullPartyMessage.append("&cYou were removed from your party whilst offline.");
+            }
+          }
+          if (nullPartyMessage.length() != 0) {
+            new BukkitRunnable() {
+              @Override
+              public void run() {
+                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+                if(offlinePlayer.isOnline()) {
+                  ((Player) offlinePlayer).sendMessage(Methods.color(plugin.getPluginPrefix() + nullPartyMessage.toString()));
+                }
+              }
+            }.runTaskLater(plugin, 2 * 20);
+          }
+        }
+        long replaceCooldown = resultSet.getLong("replace_ability_cooldown_time");
+        if(System.currentTimeMillis() < replaceCooldown) {
+          builder.endTimeForReplaceCooldown(replaceCooldown);
+        }
+        builder.partyID(partyID);
+      } catch(SQLException e) {
+        e.printStackTrace();
+      }
+    });
+
+    Optional<ResultSet> settingsSet = database.executeQuery("SELECT * FROM mcrpg_player_settings WHERE uuid = '" + uuid.toString() + "'");
+    settingsSet.ifPresent(rs -> {
+      try {
+        if(rs.next()) {
+          builder.healthbarType(MobHealthbarUtils.MobHealthbarType.fromString(rs.getString("health_type")))
+              .keepHandEmpty(rs.getBoolean("keep_hand"))
+              .displayType(DisplayType.fromString(rs.getString("display_type")))
+              .autoDeny(rs.getBoolean("auto_deny"))
+              .ignoreTips(rs.getBoolean("ignore_tips"))
+              .requireEmptyOffHand(rs.getBoolean("require_empty_offhand"))
+              .unarmedIgnoreSlot(rs.getInt("unarmed_ignore_slot"));
+        }
+      } catch(SQLException e) {
+        e.printStackTrace();
+      }
+    });
+
+    return builder.build();
+  }
+
   public static boolean isPlayerFrozen(UUID uuid) {
     if(isPlayerStored(uuid)){
       playersFrozen.remove(uuid);
@@ -69,7 +187,7 @@ public class PlayerManager {
     if (Bukkit.getPlayer(uuid) != null && players.containsKey(uuid)) {
       return players.get(uuid);
     } else {
-      return new McRPGPlayer(uuid);
+      return new McRPGPlayer(uuid, plugin/* plugin reference should be refactored out eventually */);
     }
   }
 

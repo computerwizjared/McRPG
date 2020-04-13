@@ -1,6 +1,7 @@
 package us.eunoians.mcrpg.players;
 
 import com.cyr1en.flatdb.Database;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -142,7 +143,10 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Builder
 public class McRPGPlayer {
+
+  private McRPG mcRPG; // should be refactored out eventually
 
   @Getter private UUID uuid;
 
@@ -229,112 +233,7 @@ public class McRPGPlayer {
    */
   @Getter @Setter private AcceptedTeleportRequest acceptedTeleportRequest = null;
   
-  public McRPGPlayer(UUID uuid) {
-    this.uuid = uuid;
-    this.guardianSummonChance = McRPG.getInstance().getConfig().getDouble("PlayerConfiguration.PoseidonsGuardian.DefaultSummonChance");
-    Database database = McRPG.getInstance().getMcRPGDb().getDatabase();
-    Optional<ResultSet> playerDataSet = database.executeQuery("SELECT * FROM mcrpg_player_data WHERE uuid = '" + uuid.toString() + "'");
-    
-    boolean isNew = false;
-    try {
-      if(playerDataSet.isPresent()) {
-        isNew = !playerDataSet.get().next();
-      }
-      else {
-        isNew = true;
-      }
-    } catch(SQLException e) {
-      e.printStackTrace();
-    }
-    if(isNew) {
-      for(Skills type : Skills.values()) {
-        String query = "INSERT INTO mcrpg_" + type.getName() + "_data (uuid) VALUES ('" + uuid.toString() + "')";
-        database.executeUpdate(query);
-      }
-      String query = "INSERT INTO MCRPG_PLAYER_SETTINGS (UUID) VALUES ('" + uuid.toString() + "')";
-      database.executeUpdate(query);
-      query = "INSERT INTO MCRPG_PLAYER_DATA (UUID) VALUES ('" + uuid.toString() + "')";
-      database.executeUpdate(query);
-      query = "INSERT INTO MCRPG_LOADOUT (UUID) VALUES ('" + uuid.toString() + "')";
-      database.executeUpdate(query);
-      playerDataSet = database.executeQuery("SELECT * FROM mcrpg_player_data WHERE uuid = '" + uuid.toString() + "'");
-      try {
-        playerDataSet.get().next();
-      } catch(SQLException e) {
-        e.printStackTrace();
-      }
-    }
-    playerDataSet.ifPresent(resultSet -> {
-      try {
-        //if(resultSet.next()) {
-        this.abilityPoints = resultSet.getInt("ability_points");
-        this.redeemableExp = resultSet.getInt("redeemable_exp");
-        this.redeemableLevels = resultSet.getInt("redeemable_levels");
-        long replaceCooldown = resultSet.getLong("replace_ability_cooldown_time");
-        this.boostedExp = resultSet.getInt("boosted_exp");
-        this.divineEscapeExpDebuff = resultSet.getDouble("divine_escape_exp_debuff");
-        this.divineEscapeDamageDebuff = resultSet.getDouble("divine_escape_damage_debuff");
-        this.divineEscapeExpEnd = resultSet.getInt("divine_escape_exp_end_time");
-        this.divineEscapeDamageEnd = resultSet.getInt("divine_escape_damage_end_time");
-        String partyIDString = resultSet.getString("party_uuid");
-        if(partyIDString.equalsIgnoreCase("nu")){
-           partyID = null;
-        }
-        else{
-          partyID = UUID.fromString(partyIDString);
-          Party party = McRPG.getInstance().getPartyManager().getParty(partyID);
-          StringBuilder nullPartyMessage = new StringBuilder();
-          if(party == null){
-            partyID = null;
-            nullPartyMessage.append("&cYour party no longer exists.");
-          }
-          else{
-            if(!party.isPlayerInParty(uuid)){
-              partyID = null;
-              nullPartyMessage.append("&cYou were removed from your party whilst offline.");
-            }
-          }
-          if(nullPartyMessage.length() != 0){
-            new BukkitRunnable(){
-              @Override
-              public void run(){
-                OfflinePlayer offlinePlayer = getOfflineMcRPGPlayer();
-                if(offlinePlayer.isOnline()){
-                  ((Player) offlinePlayer).sendMessage(Methods.color(McRPG.getInstance().getPluginPrefix() + nullPartyMessage.toString()));
-                }
-              }
-            }.runTaskLater(McRPG.getInstance(), 2 * 20);
-          }
-        }
-        Calendar cal1 = Calendar.getInstance();
-        Calendar cal = Calendar.getInstance();
-        cal1.setTimeInMillis(replaceCooldown);
-        if(cal.getTimeInMillis() < cal1.getTimeInMillis()) {
-          this.endTimeForReplaceCooldown = cal1.getTimeInMillis();
-        }
-      } catch(SQLException e) {
-        e.printStackTrace();
-      }
-    });
-
-    final Optional<ResultSet> settingsSet = database.executeQuery("SELECT * FROM mcrpg_player_settings WHERE uuid = '" + uuid.toString() + "'");
-    settingsSet.ifPresent(rs -> {
-      try {
-        if(rs.next()) {
-          this.healthbarType = MobHealthbarUtils.MobHealthbarType.fromString(rs.getString("health_type"));
-          this.keepHandEmpty = rs.getBoolean("keep_hand");
-          this.displayType = DisplayType.fromString(rs.getString("display_type"));
-          this.autoDeny = rs.getBoolean("auto_deny");
-          this.ignoreTips = rs.getBoolean("ignore_tips");
-          this.requireEmptyOffHand = rs.getBoolean("require_empty_offhand");
-          this.unarmedIgnoreSlot = rs.getInt("unarmed_ignore_slot");
-        }
-      } catch(SQLException e) {
-        e.printStackTrace();
-      }
-    });
-
-    //Initialize skills
+  public McRPGPlayer(UUID uuid, McRPG mcRPG/* mcRPG reference should be refactored out eventually */) {
     Arrays.stream(Skills.values()).forEach(skill -> {
       HashMap<GenericAbility, BaseAbility> abilityMap = new HashMap<>();
       Optional<ResultSet> skillSet = database.executeQuery("SELECT * FROM mcrpg_" + skill.getName().toLowerCase() + "_data WHERE uuid = '" + uuid.toString() + "'");
@@ -412,7 +311,7 @@ public class McRPGPlayer {
     loadoutSet.ifPresent(rs -> {
       try {
         if(rs.next()) {
-          for(int i = 1; i <= McRPG.getInstance().getConfig().getInt("PlayerConfiguration.AmountOfTotalAbilities"); i++) {
+          for(int i = 1; i <= mcRPG.getConfig().getInt("PlayerConfiguration.AmountOfTotalAbilities"); i++) {
             //It has to be an unlocked ability since default ones cant be in the loadout
             String s = rs.getString("Slot" + i);
             if(s == null || s.equalsIgnoreCase("null")) {
@@ -441,6 +340,10 @@ public class McRPGPlayer {
     for(UnlockedAbilities a : toremove){
       abilityLoadout.remove(a);
     }
+  }
+
+  public void addSkill() {
+
   }
 
   public OfflinePlayer getOfflineMcRPGPlayer() {
@@ -579,8 +482,8 @@ public class McRPGPlayer {
       long timeToEnd = abilitiesOnCooldown.get(ability);
       if(Calendar.getInstance().getTimeInMillis() >= timeToEnd) {
         if(Bukkit.getOfflinePlayer(uuid).isOnline()) {
-          this.getPlayer().sendMessage(Methods.color(McRPG.getInstance().getPluginPrefix() +
-                  McRPG.getInstance().getLangFile().getString("Messages.Players.CooldownExpire").replace("%Ability%", ability.getName())));
+          this.getPlayer().sendMessage(Methods.color(mcRPG.getPluginPrefix() +
+                  mcRPG.getLangFile().getString("Messages.Players.CooldownExpire").replace("%Ability%", ability.getName())));
         }
         toRemove.add(ability);
       }
@@ -588,7 +491,7 @@ public class McRPGPlayer {
         toRemove.add(ability);
       }
     }
-    Database database = McRPG.getInstance().getMcRPGDb().getDatabase();
+    Database database = mcRPG.getMcRPGDb().getDatabase();
     if(!toRemove.isEmpty()) {
       for(UnlockedAbilities ab : toRemove) {
         database.executeUpdate("UPDATE mcrpg_" + ab.getSkill().getName().toLowerCase() + "_data SET "
@@ -599,8 +502,8 @@ public class McRPGPlayer {
     if(endTimeForReplaceCooldown != 0 && Calendar.getInstance().getTimeInMillis() >= endTimeForReplaceCooldown) {
       this.endTimeForReplaceCooldown = 0;
       if(Bukkit.getOfflinePlayer(uuid).isOnline()) {
-        this.getPlayer().sendMessage(Methods.color(McRPG.getInstance().getPluginPrefix() +
-                McRPG.getInstance().getLangFile().getString("Messages.Players.ReplaceCooldownExpire")));
+        this.getPlayer().sendMessage(Methods.color(mcRPG.getPluginPrefix() +
+                mcRPG.getLangFile().getString("Messages.Players.ReplaceCooldownExpire")));
       }
       database.executeUpdate("UPDATE mcrpg_player_data SET replace_ability_cooldown_time = 0 WHERE uuid = '" + uuid.toString() + "'");
     }
@@ -608,14 +511,14 @@ public class McRPGPlayer {
       divineEscapeExpEnd = 0;
       divineEscapeExpDebuff = 0;
       if(Bukkit.getOfflinePlayer(uuid).isOnline()){
-        getPlayer().sendMessage(Methods.color(getPlayer(), McRPG.getInstance().getPluginPrefix() + McRPG.getInstance().getLangFile().getString("Messages.Abilities.DivineEscape.ExpDebuffExpire")));
+        getPlayer().sendMessage(Methods.color(getPlayer(), mcRPG.getPluginPrefix() + mcRPG.getLangFile().getString("Messages.Abilities.DivineEscape.ExpDebuffExpire")));
         }
       }
     if(divineEscapeDamageEnd != 0 && divineEscapeDamageEnd <= Calendar.getInstance().getTimeInMillis()){
       divineEscapeDamageEnd = 0;
       divineEscapeDamageDebuff = 0;
       if(Bukkit.getOfflinePlayer(uuid).isOnline()){
-        getPlayer().sendMessage(Methods.color(getPlayer(), McRPG.getInstance().getPluginPrefix() + McRPG.getInstance().getLangFile().getString("Messages.Abilities.DivineEscape.DamageDebuffExpire")));
+        getPlayer().sendMessage(Methods.color(getPlayer(), mcRPG.getPluginPrefix() + mcRPG.getLangFile().getString("Messages.Abilities.DivineEscape.DamageDebuffExpire")));
       }
     }
   }
@@ -624,13 +527,13 @@ public class McRPGPlayer {
    * Reset all cooldowns to be 0
    */
   public void resetCooldowns() {
-    Database database = McRPG.getInstance().getMcRPGDb().getDatabase();
+    Database database = mcRPG.getMcRPGDb().getDatabase();
     for(UnlockedAbilities ability : abilitiesOnCooldown.keySet()) {
       long timeToEnd = abilitiesOnCooldown.get(ability);
       if(Calendar.getInstance().getTimeInMillis() >= timeToEnd) {
         if(Bukkit.getOfflinePlayer(uuid).isOnline()) {
-          this.getPlayer().sendMessage(Methods.color(McRPG.getInstance().getPluginPrefix() +
-                  McRPG.getInstance().getLangFile().getString("Messages.Players.CooldownExpire").replace("%Ability%", ability.getName())));
+          this.getPlayer().sendMessage(Methods.color(mcRPG.getPluginPrefix() +
+                  mcRPG.getLangFile().getString("Messages.Players.CooldownExpire").replace("%Ability%", ability.getName())));
         }
         database.executeUpdate("UPDATE mcrpg_" + ability.getSkill().getName().toLowerCase() + "_data SET " + Methods.convertNameToSQL(ability.getName().replace(" ", "").replace("_", "").replace("+", "Plus"))
                 + "_cooldown = 0 WHERE uuid = '" + uuid.toString() + "'");
@@ -641,8 +544,8 @@ public class McRPGPlayer {
     endTimeForReplaceCooldown = 0;
     database.executeUpdate("UPDATE mcrpg_player_data SET replace_ability_cooldown_time = 0 WHERE uuid = `" + uuid.toString() + "`");
     if(Bukkit.getOfflinePlayer(uuid).isOnline()) {
-      this.getPlayer().sendMessage(Methods.color(McRPG.getInstance().getPluginPrefix() +
-              McRPG.getInstance().getLangFile().getString("Messages.Players.ReplaceCooldownExpire")));
+      this.getPlayer().sendMessage(Methods.color(mcRPG.getPluginPrefix() +
+              mcRPG.getLangFile().getString("Messages.Players.ReplaceCooldownExpire")));
     }
   }
 
@@ -650,7 +553,7 @@ public class McRPGPlayer {
    * Save players data
    */
   public void saveData() {
-    Database database = McRPG.getInstance().getMcRPGDb().getDatabase();
+    Database database = mcRPG.getMcRPGDb().getDatabase();
     for(Skills type : Skills.values()) {
       Skill skill = getSkill(type);
       String query = "UPDATE mcrpg_" + skill.getName().toLowerCase() + "_data SET current_level = " + skill.getCurrentLevel() + ", current_exp = " + skill.getCurrentExp();
@@ -690,7 +593,7 @@ public class McRPGPlayer {
       database.executeUpdate(query);
     }
     String loadoutQuery = "UPDATE mcrpg_loadout SET";
-    for(int i = 1; i <= McRPG.getInstance().getConfig().getInt("PlayerConfiguration.AmountOfTotalAbilities"); i++) {
+    for(int i = 1; i <= mcRPG.getConfig().getInt("PlayerConfiguration.AmountOfTotalAbilities"); i++) {
       if(i != 1) {
         loadoutQuery += ",";
       }
@@ -703,7 +606,7 @@ public class McRPGPlayer {
 
     RemoteTransfer transfer = (RemoteTransfer) getBaseAbility(UnlockedAbilities.REMOTE_TRANSFER);
     if(transfer.isUnlocked()) {
-      File remoteTransferFile = new File(McRPG.getInstance().getDataFolder(), File.separator + "remote_transfer_data" + File.separator + uuid.toString() + ".yml");
+      File remoteTransferFile = new File(mcRPG.getDataFolder(), File.separator + "remote_transfer_data" + File.separator + uuid.toString() + ".yml");
       FileConfiguration data = YamlConfiguration.loadConfiguration(remoteTransferFile);
       for(Material mat : transfer.getItemsToSync().keySet()) {
         data.set("RemoteTransferBlocks." + mat.toString(), transfer.getItemsToSync().get(mat));
