@@ -66,7 +66,7 @@ public class PlayerManager {
     }.runTaskAsynchronously(plugin);
   }
 
-  private McRPGPlayer createMcRPGPlayer(UUID uuid) {
+  private static McRPGPlayer createMcRPGPlayer(UUID uuid) {
     McRPGPlayer.McRPGPlayerBuilder builder = McRPGPlayer.builder()
         .uuid(uuid)
         .guardianSummonChance(plugin.getConfig().getDouble("PlayerConfiguration.PoseidonsGuardian.DefaultSummonChance"));
@@ -187,7 +187,7 @@ public class PlayerManager {
     if (Bukkit.getPlayer(uuid) != null && players.containsKey(uuid)) {
       return players.get(uuid);
     } else {
-      return new McRPGPlayer(uuid, plugin/* plugin reference should be refactored out eventually */);
+      return createMcRPGPlayer(uuid);//McRPGPlayer.builder().uuid(uuid).mcRPG(plugin/* plugin reference should be refactored out eventually */).build();
     }
   }
 

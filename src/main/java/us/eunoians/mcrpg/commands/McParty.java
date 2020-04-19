@@ -8,7 +8,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import us.eunoians.mcrpg.McRPG;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.exceptions.PartyNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
@@ -48,13 +47,7 @@ public class McParty implements CommandExecutor{
            McRPG.getInstance().getConfig().getStringList("Configuration.DisabledWorlds").contains(world)){
         return true;
       }
-      McRPGPlayer mp;
-      try{
-        mp = PlayerManager.getPlayer(p.getUniqueId());
-      }catch(McRPGPlayerNotFoundException e){
-        e.printStackTrace();
-        return true;
-      }
+      McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
       if(args.length == 0){
         if(mp.getPartyID() == null){
           if(mp.getPartyInvites().isEmpty()){
@@ -199,13 +192,9 @@ public class McParty implements CommandExecutor{
                   if(Methods.hasPlayerLoggedInBefore(args[1])){
                     OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[1]);
                     if(offlinePlayer.isOnline()){
-                      try{
-                        PlayerManager.getPlayer(offlinePlayer.getUniqueId()).getPartyInvites().enqueue(new PartyInvite(party.getPartyID(), offlinePlayer.getUniqueId()));
-                        p.sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.InvitedPlayer")));
-                        ((Player) offlinePlayer).sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.BeenInvited").replace("%Player%", p.getName())));
-                      }catch(McRPGPlayerNotFoundException e){
-                        p.sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.IssueInviting")));
-                      }
+                      PlayerManager.getPlayer(offlinePlayer.getUniqueId()).getPartyInvites().enqueue(new PartyInvite(party.getPartyID(), offlinePlayer.getUniqueId()));
+                      p.sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.InvitedPlayer")));
+                      ((Player) offlinePlayer).sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.BeenInvited").replace("%Player%", p.getName())));
                       return true;
                     }
                     else{
@@ -295,16 +284,10 @@ public class McParty implements CommandExecutor{
                 }
                 party.saveParty();
                 p.sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.KickedPlayer").replace("%Player%", offlinePlayer.getName())));
-                try{
-                  McRPGPlayer target = PlayerManager.getPlayer(offlinePlayer.getUniqueId());
-                  target.setPartyID(null);
-                  target.emptyTeleportRequests();
-                  target.saveData();
-                }catch(McRPGPlayerNotFoundException e){
-                  McRPGPlayer target = new McRPGPlayer(offlinePlayer.getUniqueId());
-                  target.setPartyID(null);
-                  target.saveData();
-                }
+                McRPGPlayer target = PlayerManager.getPlayer(offlinePlayer.getUniqueId());
+                target.setPartyID(null);
+                target.emptyTeleportRequests();
+                target.saveData();
                 if(offlinePlayer.isOnline()){
                   ((Player) offlinePlayer).sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.KickedFromParty").replace("%Party%", party.getName())));
                 }
@@ -670,16 +653,12 @@ public class McParty implements CommandExecutor{
                   return true;
                 }
                 else{
-                  try{
-                    McRPGPlayer target = PlayerManager.getPlayer(offlinePlayer.getUniqueId());
-                    TeleportRequest teleportRequest = new TeleportRequest(offlinePlayer.getUniqueId(), p.getUniqueId(), false);
-                    target.addTeleportRequest(teleportRequest);
-                    target.getPlayer().sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.ReceivedTpahereRequest").replace("%Player%", p.getName())));
-                    p.sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.RequestedTpahere").replace("%Player%", offlinePlayer.getName())));
-                    return true;
-                  }catch(McRPGPlayerNotFoundException e){
-                    return true;
-                  }
+                  McRPGPlayer target = PlayerManager.getPlayer(offlinePlayer.getUniqueId());
+                  TeleportRequest teleportRequest = new TeleportRequest(offlinePlayer.getUniqueId(), p.getUniqueId(), false);
+                  target.addTeleportRequest(teleportRequest);
+                  target.getPlayer().sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.ReceivedTpahereRequest").replace("%Player%", p.getName())));
+                  p.sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.RequestedTpahere").replace("%Player%", offlinePlayer.getName())));
+                  return true;
                 }
               }
             }
@@ -712,16 +691,12 @@ public class McParty implements CommandExecutor{
                   return true;
                 }
                 else{
-                  try{
-                    McRPGPlayer target = PlayerManager.getPlayer(offlinePlayer.getUniqueId());
-                    TeleportRequest teleportRequest = new TeleportRequest(offlinePlayer.getUniqueId(), p.getUniqueId(), true);
-                    target.addTeleportRequest(teleportRequest);
-                    target.getPlayer().sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.ReceivedTpaRequest").replace("%Player%", p.getName())));
-                    p.sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.RequestedTpa").replace("%Player%", offlinePlayer.getName())));
-                    return true;
-                  }catch(McRPGPlayerNotFoundException e){
-                    return true;
-                  }
+                  McRPGPlayer target = PlayerManager.getPlayer(offlinePlayer.getUniqueId());
+                  TeleportRequest teleportRequest = new TeleportRequest(offlinePlayer.getUniqueId(), p.getUniqueId(), true);
+                  target.addTeleportRequest(teleportRequest);
+                  target.getPlayer().sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.ReceivedTpaRequest").replace("%Player%", p.getName())));
+                  p.sendMessage(Methods.color(p, pluginPrefix + McRPG.getInstance().getLangFile().getString("Messages.Commands.Parties.RequestedTpa").replace("%Player%", offlinePlayer.getName())));
+                  return true;
                 }
               }
             }

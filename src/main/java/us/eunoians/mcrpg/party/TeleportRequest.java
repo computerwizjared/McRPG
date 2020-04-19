@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import us.eunoians.mcrpg.McRPG;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.players.McRPGPlayer;
 import us.eunoians.mcrpg.players.PlayerManager;
@@ -118,11 +117,8 @@ public class TeleportRequest{
             else{
               teleportFunction.teleportPlayer(onlineRecipient, onlineSender);
               cancel();
-              try{
-                McRPGPlayer mp = toRecipient ? PlayerManager.getPlayer(sender) : PlayerManager.getPlayer(recipient);
-                mp.setAcceptedTeleportRequest(null);
-              }catch(McRPGPlayerNotFoundException e){
-              }
+              McRPGPlayer mp = toRecipient ? PlayerManager.getPlayer(sender) : PlayerManager.getPlayer(recipient);
+              mp.setAcceptedTeleportRequest(null);
             }
           }
           iterations.incrementAndGet();
@@ -130,13 +126,9 @@ public class TeleportRequest{
       }.runTaskTimer(McRPG.getInstance(), 10, 20);
       
       AcceptedTeleportRequest acceptedTeleportRequest = new AcceptedTeleportRequest(waitTask, this);
-      try{
-        McRPGPlayer mp = toRecipient ? PlayerManager.getPlayer(sender) : PlayerManager.getPlayer(recipient);
-        mp.setAcceptedTeleportRequest(acceptedTeleportRequest);
-        return true;
-      }catch(McRPGPlayerNotFoundException e){
-        return false;
-      }
+      McRPGPlayer mp = toRecipient ? PlayerManager.getPlayer(sender) : PlayerManager.getPlayer(recipient);
+      mp.setAcceptedTeleportRequest(acceptedTeleportRequest);
+      return true;
     }
     return false;
   }

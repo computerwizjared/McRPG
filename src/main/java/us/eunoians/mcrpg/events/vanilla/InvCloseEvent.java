@@ -6,7 +6,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import us.eunoians.mcrpg.McRPG;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.gui.GUI;
 import us.eunoians.mcrpg.gui.GUITracker;
 import us.eunoians.mcrpg.gui.PartyBankGUI;
@@ -21,11 +20,7 @@ public class InvCloseEvent implements Listener {
     if(GUITracker.isPlayerTracked(p)){
       GUI gui = GUITracker.getPlayersGUI(p);
       if(gui instanceof PartyBankGUI || gui instanceof PartyPrivateBankGUI){
-        try{
-          McRPG.getInstance().getPartyManager().getParty(PlayerManager.getPlayer(p.getUniqueId()).getPartyID()).saveParty();
-        }catch(McRPGPlayerNotFoundException ex){
-          ex.printStackTrace();
-        }
+        McRPG.getInstance().getPartyManager().getParty(PlayerManager.getPlayer(p.getUniqueId()).getPartyID()).saveParty();
       }
       if(gui.isClearData()){
         GUITracker.stopTrackingPlayer(p);

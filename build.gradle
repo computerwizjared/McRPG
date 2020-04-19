@@ -31,6 +31,10 @@ repositories {
     maven { url 'https://repo.md-5.net/content/repositories/releases/' }
 }
 
+configurations {
+    testImplementation.extendsFrom compileOnly
+}
+
 dependencies {
     compile 'com.github.cyr1en:javen:1.0.2'
     annotationProcessor 'com.github.cyr1en:javen:1.0.2'

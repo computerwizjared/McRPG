@@ -64,10 +64,11 @@ public abstract class Skill {
     this.currentExp = currentExp;
     this.abilityMap = abilityMap;
     this.player = player;
-    Parser equation = type.getExpEquation();
-    equation.setVariable("skill_level", currentLevel);
-    equation.setVariable("power_level", player.getPowerLevel());
-    this.expToLevel = (int) equation.getValue();
+    //TODO test
+    //Parser equation = type.getExpEquation();
+    //equation.setVariable("skill_level", currentLevel);
+    //equation.setVariable("power_level", player.getPowerLevel());
+    //this.expToLevel = (int) equation.getValue();
   }
 
   /**

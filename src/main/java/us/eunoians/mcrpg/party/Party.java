@@ -20,7 +20,6 @@ import us.eunoians.mcrpg.api.events.mcrpg.party.PartyExpGainEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.party.PartyLevelUpEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.party.PlayerJoinPartyEvent;
 import us.eunoians.mcrpg.api.events.mcrpg.party.PlayerKickPartyEvent;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.api.util.Methods;
 import us.eunoians.mcrpg.players.McRPGPlayer;
@@ -260,30 +259,21 @@ public class Party{
   }
   
   public boolean invitePlayer(UUID uuid){
-    try{
-      McRPGPlayer mcRPGPlayer = PlayerManager.getPlayer(uuid);
-      if(mcRPGPlayer.getPartyID() == null){
-        PartyInvite partyInvite = new PartyInvite(partyID, uuid);
-        mcRPGPlayer.getPartyInvites().enqueue(partyInvite);
-        return true;
-      }
-      return false;
-    }catch(McRPGPlayerNotFoundException e){
-      return false;
+    McRPGPlayer mcRPGPlayer = PlayerManager.getPlayer(uuid);
+    if(mcRPGPlayer.getPartyID() == null){
+      PartyInvite partyInvite = new PartyInvite(partyID, uuid);
+      mcRPGPlayer.getPartyInvites().enqueue(partyInvite);
+      return true;
     }
+    return false;
   }
   
   public void disband(boolean deleteData){
     PartyDisbandEvent partyDisbandEvent = new PartyDisbandEvent(this);
     Bukkit.getPluginManager().callEvent(partyDisbandEvent);
     for(UUID playerUUID : partyMembers.keySet()){
-      McRPGPlayer mp;
-      try{
-        mp = PlayerManager.getPlayer(playerUUID);
-        mp.emptyTeleportRequests();
-      }catch(McRPGPlayerNotFoundException e){
-        mp = new McRPGPlayer(playerUUID);
-      }
+      McRPGPlayer mp = PlayerManager.getPlayer(playerUUID);
+      mp.emptyTeleportRequests();
       mp.setPartyID(null);
       mp.saveData();
     }

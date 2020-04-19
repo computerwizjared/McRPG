@@ -7,7 +7,6 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 import us.eunoians.mcrpg.McRPG;
-import us.eunoians.mcrpg.api.exceptions.McRPGPlayerNotFoundException;
 import us.eunoians.mcrpg.api.util.FileManager;
 import us.eunoians.mcrpg.party.Party;
 import us.eunoians.mcrpg.party.PartyMember;
@@ -29,12 +28,7 @@ public class McPartyPrompt implements TabCompleter{
     }
     List<String> completions = new ArrayList<>();
     Player p = (Player) sender;
-    McRPGPlayer mp;
-    try{
-      mp = PlayerManager.getPlayer(p.getUniqueId());
-    }catch(McRPGPlayerNotFoundException e){
-      mp = new McRPGPlayer(p.getUniqueId());
-    }
+    McRPGPlayer mp = PlayerManager.getPlayer(p.getUniqueId());
     Party party = mp.getPartyID() != null ? McRPG.getInstance().getPartyManager().getParty(mp.getPartyID()) : null;
     PartyMember partyMember = party != null ? party.getPartyMember(p.getUniqueId()) : null;
     boolean isInParty = party != null;
@@ -112,12 +106,9 @@ public class McPartyPrompt implements TabCompleter{
             case "invite":
               for(Player player : Bukkit.getOnlinePlayers()){
                 if(!party.isPlayerInParty(player.getUniqueId())){
-                  try{
-                    McRPGPlayer mcRPGPlayer = PlayerManager.getPlayer(player.getUniqueId());
-                    if(mcRPGPlayer.getPartyID() == null){
-                      completions.add(player.getName());
-                    }
-                  }catch(McRPGPlayerNotFoundException e){
+                  McRPGPlayer mcRPGPlayer = PlayerManager.getPlayer(player.getUniqueId());
+                  if(mcRPGPlayer.getPartyID() == null){
+                    completions.add(player.getName());
                   }
                 }
               }

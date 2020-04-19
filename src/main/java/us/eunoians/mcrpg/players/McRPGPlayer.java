@@ -153,10 +153,10 @@ public class McRPGPlayer {
   @Getter private int powerLevel;
   @Getter @Setter private int abilityPoints;
 
-  private ArrayList<Skill> skills = new ArrayList<>();
+  private List<Skill> skills = new ArrayList<>();
 
   @Getter private ArrayList<UnlockedAbilities> pendingUnlockAbilities = new ArrayList<>();
-  private HashMap<UnlockedAbilities, Long> abilitiesOnCooldown = new HashMap<>();
+  private final Map<UnlockedAbilities, Long> abilitiesOnCooldown = new HashMap<>();
   @Getter private ArrayList<UnlockedAbilities> abilityLoadout = new ArrayList<>();
   @Getter @Setter private long endTimeForReplaceCooldown;
   @Getter private ArrayList<UnlockedAbilities> activeAbilities = new ArrayList<>();
@@ -232,7 +232,7 @@ public class McRPGPlayer {
    * This represents the teleport request for a player. If null then they don't have a request accepted
    */
   @Getter @Setter private AcceptedTeleportRequest acceptedTeleportRequest = null;
-  
+
   public McRPGPlayer(UUID uuid, McRPG mcRPG/* mcRPG reference should be refactored out eventually */) {
     Arrays.stream(Skills.values()).forEach(skill -> {
       HashMap<GenericAbility, BaseAbility> abilityMap = new HashMap<>();
@@ -531,7 +531,7 @@ public class McRPGPlayer {
     for(UnlockedAbilities ability : abilitiesOnCooldown.keySet()) {
       long timeToEnd = abilitiesOnCooldown.get(ability);
       if(Calendar.getInstance().getTimeInMillis() >= timeToEnd) {
-        if(Bukkit.getOfflinePlayer(uuid).isOnline()) {
+        if(mcRPG.getServer().getOfflinePlayer(uuid).isOnline()) {
           this.getPlayer().sendMessage(Methods.color(mcRPG.getPluginPrefix() +
                   mcRPG.getLangFile().getString("Messages.Players.CooldownExpire").replace("%Ability%", ability.getName())));
         }
